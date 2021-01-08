@@ -1,12 +1,12 @@
 use std::fmt::Debug;
-
+use std::*;
 /*
     Binary Search Tree
     - value: T
     - left: Box of BST, left.value < parent's value
     - right: Box of BST, right.value > parent's value
 */
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct BST<T: Ord + Clone + Debug> {
     pub value: T,
     size: usize,
@@ -126,6 +126,64 @@ impl<T: Ord + Clone + Debug> BST<T> {
         };
     }
 
+    pub fn delete(&mut self, key: T) {
+        if self.size == 1 {
+            return;
+        }
+        self._delete(key);
+    }
+
+    fn _delete(&mut self, key: T) {
+        self.size -= 1;
+        match (self.value.clone(), self.left.as_mut(), self.right.as_mut()) {
+            (v, Some(l), _) if v > key => {
+                match (l.value.clone(), l.left.as_mut(), l.right.as_mut()) {
+                    (k, None, None) if k == key => self.left = None,
+                    (k, Some(ll), None) if k == key => self.left = Some(ll.clone()),
+                    (k, None, Some(r)) if k == key => self.left = Some(r.clone()),
+                    (k, Some(ll), Some(_r)) if k == key => {
+                        // l と lのpred を swap
+                        mem::swap(&mut l.value, &mut ll.max_tree().value);
+                        l.size -= 1;
+                        if ll.value == key {
+                            l.left = None;
+                        } else {
+                            ll._delete(key);
+                        }
+                    }
+                    _ => l._delete(key),
+                }
+            }
+            (v, _, Some(r)) if v < key => {
+                match (r.value.clone(), r.left.as_mut(), r.right.as_mut()) {
+                    (k, None, None) if k == key => self.right = None,
+                    (k, Some(l), None) if k == key => self.right = Some(l.clone()),
+                    (k, None, Some(rr)) if k == key => self.right = Some(rr.clone()),
+                    (k, Some(l), Some(_r)) if k == key => {
+                        // rと rのpred を swap
+                        mem::swap(&mut r.value, &mut l.max_tree().value);
+                        if l.value == key {
+                            r.size -= 1;
+                            r.left = None;
+                            return;
+                        }
+
+                        l._delete(key);
+                    }
+                    _ => r._delete(key),
+                }
+            }
+            _ => return,
+        }
+    }
+
+    fn max_tree(&mut self) -> &mut BST<T> {
+        match self.right.as_ref() {
+            Some(_) => self.right.as_mut().unwrap().max_tree(),
+            _ => self,
+        }
+    }
+
     pub fn select(&self, i: usize) -> Option<T> {
         Some(self._select(i)?.value.clone())
     }
@@ -142,5 +200,118 @@ impl<T: Ord + Clone + Debug> BST<T> {
             v if v < i - 1 => self.right.as_ref()?._select(i - 1 - v),
             _ => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn delete_test1() {
+        let mut bst = new(10);
+        bst.insert(9);
+        bst.delete(9);
+        assert_eq!(bst, new(10));
+    }
+
+    #[test]
+    fn delete_test2() {
+        let mut bst = new(10);
+        bst.insert(11);
+        bst.delete(11);
+        assert_eq!(bst, new(10));
+    }
+
+    #[test]
+    fn delete_test3() {
+        let mut bst = new(10);
+        bst.insert(9);
+        bst.insert(8);
+        bst.delete(9);
+
+        let expected = || {
+            let mut bst = new(10);
+            bst.insert(8);
+            bst
+        };
+
+        assert_eq!(bst, expected());
+    }
+
+    #[test]
+    fn delete_test4() {
+        let mut bst = new(10);
+        bst.insert(11);
+        bst.insert(12);
+        bst.delete(11);
+
+        let expected = || {
+            let mut bst = new(10);
+            bst.insert(12);
+            bst
+        };
+
+        assert_eq!(bst, expected());
+    }
+
+    #[test]
+    fn delete_test5() {
+        let mut bst = new(10);
+        bst.insert(5);
+        bst.insert(7);
+        bst.insert(3);
+        bst.delete(5);
+
+        let expected = || {
+            let mut bst = new(10);
+            bst.insert(3);
+            bst.insert(7);
+            bst
+        };
+
+        assert_eq!(bst, expected());
+    }
+
+    #[test]
+    fn delete_test6() {
+        let mut bst = new(10);
+        bst.insert(5);
+        bst.insert(4);
+        bst.insert(7);
+        bst.insert(8);
+        bst.delete(5);
+
+        let expected = || {
+            let mut bst = new(10);
+            bst.insert(4);
+            bst.insert(7);
+            bst.insert(8);
+            bst
+        };
+
+        assert_eq!(bst, expected());
+    }
+
+    #[test]
+    fn delete_test7() {
+        let mut bst = new(10);
+        bst.insert(5);
+        bst.insert(6);
+        bst.insert(2);
+        bst.insert(3);
+        bst.insert(4);
+        bst.delete(5);
+
+        let expected = || {
+            let mut bst = new(10);
+            bst.insert(4);
+            bst.insert(6);
+            bst.insert(2);
+            bst.insert(3);
+            bst
+        };
+
+        assert_eq!(bst, expected());
     }
 }
