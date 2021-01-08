@@ -14,16 +14,16 @@ pub struct BST<T: Ord + Clone + Debug> {
     right: Option<Box<BST<T>>>,
 }
 
-pub fn new<T: Ord + Clone + Debug>(root: T) -> BST<T> {
-    BST::<T> {
-        value: root,
-        size: 1,
-        left: None,
-        right: None,
-    }
-}
-
 impl<T: Ord + Clone + Debug> BST<T> {
+    pub fn new(root: T) -> BST<T> {
+        BST::<T> {
+            value: root,
+            size: 1,
+            left: None,
+            right: None,
+        }
+    }
+
     pub fn search(&self, key: T) -> Option<T> {
         match (self.value.clone(), self.left.as_ref(), self.right.as_ref()) {
             (v, _, _) if v == key => Some(self.value.clone()),
@@ -37,9 +37,9 @@ impl<T: Ord + Clone + Debug> BST<T> {
         self.size += 1;
         match (self.value.clone(), self.left.as_mut(), self.right.as_mut()) {
             (v, Some(l), _) if v >= key => l.insert(key),
-            (v, None, _) if v >= key => self.left = Some(Box::new(new(key))),
+            (v, None, _) if v >= key => self.left = Some(Box::new(BST::new(key))),
             (v, _, Some(r)) if v < key => r.insert(key),
-            (v, _, None) if v < key => self.right = Some(Box::new(new(key))),
+            (v, _, None) if v < key => self.right = Some(Box::new(BST::new(key))),
             _ => return,
         }
     }
@@ -209,29 +209,29 @@ mod tests {
 
     #[test]
     fn delete_test1() {
-        let mut bst = new(10);
+        let mut bst = BST::new(10);
         bst.insert(9);
         bst.delete(9);
-        assert_eq!(bst, new(10));
+        assert_eq!(bst, BST::new(10));
     }
 
     #[test]
     fn delete_test2() {
-        let mut bst = new(10);
+        let mut bst = BST::new(10);
         bst.insert(11);
         bst.delete(11);
-        assert_eq!(bst, new(10));
+        assert_eq!(bst, BST::new(10));
     }
 
     #[test]
     fn delete_test3() {
-        let mut bst = new(10);
+        let mut bst = BST::new(10);
         bst.insert(9);
         bst.insert(8);
         bst.delete(9);
 
         let expected = || {
-            let mut bst = new(10);
+            let mut bst = BST::new(10);
             bst.insert(8);
             bst
         };
@@ -241,13 +241,13 @@ mod tests {
 
     #[test]
     fn delete_test4() {
-        let mut bst = new(10);
+        let mut bst = BST::new(10);
         bst.insert(11);
         bst.insert(12);
         bst.delete(11);
 
         let expected = || {
-            let mut bst = new(10);
+            let mut bst = BST::new(10);
             bst.insert(12);
             bst
         };
@@ -257,14 +257,14 @@ mod tests {
 
     #[test]
     fn delete_test5() {
-        let mut bst = new(10);
+        let mut bst = BST::new(10);
         bst.insert(5);
         bst.insert(7);
         bst.insert(3);
         bst.delete(5);
 
         let expected = || {
-            let mut bst = new(10);
+            let mut bst = BST::new(10);
             bst.insert(3);
             bst.insert(7);
             bst
@@ -275,7 +275,7 @@ mod tests {
 
     #[test]
     fn delete_test6() {
-        let mut bst = new(10);
+        let mut bst = BST::new(10);
         bst.insert(5);
         bst.insert(4);
         bst.insert(7);
@@ -283,7 +283,7 @@ mod tests {
         bst.delete(5);
 
         let expected = || {
-            let mut bst = new(10);
+            let mut bst = BST::new(10);
             bst.insert(4);
             bst.insert(7);
             bst.insert(8);
@@ -295,7 +295,7 @@ mod tests {
 
     #[test]
     fn delete_test7() {
-        let mut bst = new(10);
+        let mut bst = BST::new(10);
         bst.insert(5);
         bst.insert(6);
         bst.insert(2);
@@ -304,7 +304,7 @@ mod tests {
         bst.delete(5);
 
         let expected = || {
-            let mut bst = new(10);
+            let mut bst = BST::new(10);
             bst.insert(4);
             bst.insert(6);
             bst.insert(2);
